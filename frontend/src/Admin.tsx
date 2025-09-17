@@ -43,7 +43,6 @@ export default function Admin(props: {
               </div>
               <p className="content">{s.story}</p>
               <div className="meta below">
-                <span className="likes">❤️ {s.likes ?? 0}</span>
                 {adminSecret && (
                   <div className="actions">
                     <button onClick={() => onDelete(s.id)}>Delete</button>
