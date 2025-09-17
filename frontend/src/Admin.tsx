@@ -10,10 +10,10 @@ type Story = {
 export default function Admin(props: {
   stories: Story[]
   adminSecret: string | null
-  setAdminSecret: (v: string|null) => void
+  setAdminSecret: (v: string | null) => void
   onTrySecret: (e: React.FormEvent) => void
   onDelete: (id: number) => void
-}){
+}) {
   const { stories, adminSecret, setAdminSecret, onTrySecret, onDelete } = props
   return (
     <section className="admin-section">
@@ -40,11 +40,15 @@ export default function Admin(props: {
                 <time>{new Date(s.created_at).toLocaleString()}</time>
               </div>
               <p className="content">{s.story}</p>
-              <div className="actions"><button onClick={() => onDelete(s.id)}>Delete</button></div>
+              {adminSecret && (
+                <div className="actions">
+                  <button onClick={() => onDelete(s.id)}>Delete</button>
+                </div>
+              )}
             </article>
           ))
         )}
       </section>
-    </section>
+    </section >
   )
 }
