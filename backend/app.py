@@ -10,11 +10,23 @@ SCHEMA_PATH = os.path.join(BASE_DIR, 'schema.sql')
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(DB_PATH)
+        # ensure parent directory exists and is writable
+        parent = os.path.dirname(DB_PATH)
+        if parent and not os.path.exists(parent):
+            os.makedirs(parent, exist_ok=True)
+        try:
+            db = g._database = sqlite3.connect(DB_PATH)
+        except sqlite3.OperationalError as e:
+            app.logger.error('sqlite3.OperationalError opening DB: %s', e)
+            raise
         db.row_factory = sqlite3.Row
     return db
 
 def init_db():
+    # ensure parent directory exists
+    parent = os.path.dirname(DB_PATH)
+    if parent and not os.path.exists(parent):
+        os.makedirs(parent, exist_ok=True)
     if not os.path.exists(DB_PATH):
         with open(SCHEMA_PATH, 'r') as f:
             sql = f.read()
