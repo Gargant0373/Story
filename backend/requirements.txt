@@ -1,0 +1,4 @@
+Flask
+Flask-Cors
+pysqlite3-binary
+gunicorn

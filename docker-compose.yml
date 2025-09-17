@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    volumes:
+      - backend-data:/app/data.sqlite
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  backend-data:
+    driver: local
