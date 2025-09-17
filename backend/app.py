@@ -65,8 +65,14 @@ def post_story():
     return jsonify(dict(row)), 201
 
 
+# Protected delete: requires X-Admin-Secret header matching ADMIN_SECRET
+ADMIN_SECRET = os.environ.get('ADMIN_SECRET', 'xanskates')
+
 @app.route('/stories/<int:story_id>', methods=['DELETE'])
 def delete_story(story_id: int):
+    secret = request.headers.get('X-Admin-Secret', '')
+    if secret != ADMIN_SECRET:
+        return jsonify({'error': 'unauthorized'}), 401
     db = get_db()
     cur = db.execute('SELECT id FROM stories WHERE id = ?', (story_id,))
     row = cur.fetchone()

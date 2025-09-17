@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import { Routes, Route, useNavigate } from 'react-router-dom'
+import Home from './Home'
+import Admin from './Admin'
 
 type Story = {
   id: number
@@ -13,6 +16,8 @@ function App() {
   const [name, setName] = useState('')
   const [story, setStory] = useState('')
   const [loading, setLoading] = useState(false)
+  const [adminSecret, setAdminSecret] = useState<string | null>(() => sessionStorage.getItem('adminSecret'))
+  const navigate = useNavigate()
 
   // When running in docker with nginx, the backend is proxied at /api
   const API = import.meta.env.VITE_API_URL ?? (typeof window !== 'undefined' && window.location.hostname ? '/api' : 'http://localhost:4000')
@@ -20,6 +25,11 @@ function App() {
   useEffect(() => {
     fetch(`${API}/stories`).then((r) => r.json()).then(setStories)
   }, [])
+
+  useEffect(() => {
+    if (adminSecret) sessionStorage.setItem('adminSecret', adminSecret)
+    else sessionStorage.removeItem('adminSecret')
+  }, [adminSecret])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,6 +47,29 @@ function App() {
     setLoading(false)
   }
 
+  async function trySecret(e: React.FormEvent) {
+    e.preventDefault()
+    // verify secret by attempting an empty DELETE check is avoided; use a lightweight probe
+    const res = await fetch(`${API}/stories`, { method: 'GET', headers: adminSecret ? { 'X-Admin-Secret': adminSecret } : {} })
+    if (res.ok) {
+      navigate('/admin')
+    } else {
+      alert('secret rejected')
+    }
+  }
+
+  async function handleDelete(id: number) {
+    if (!adminSecret) return alert('no secret set')
+    if (!confirm('Delete story '+id+'?')) return
+    const res = await fetch(`${API}/stories/${id}`, { method: 'DELETE', headers: { 'X-Admin-Secret': adminSecret } })
+    if (res.status === 204) {
+      setStories(s => s.filter(x => x.id !== id))
+    } else {
+      const j = await res.json().catch(() => ({}))
+      alert('delete failed: ' + (j.error || res.status))
+    }
+  }
+
   return (
     <div id="app-root">
       <header>
@@ -45,37 +78,10 @@ function App() {
       </header>
 
       <main>
-        <section className="form-section">
-          <form onSubmit={submit}>
-            <label>
-              Your name
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Alice" />
-            </label>
-            <label>
-              Story
-              <textarea value={story} onChange={(e) => setStory(e.target.value)} placeholder="Once upon a time..." rows={6} />
-            </label>
-            <div className="actions">
-              <button type="submit" disabled={loading}>{loading ? 'Sending...' : 'Share story'}</button>
-            </div>
-          </form>
-        </section>
-
-        <section className="list-section">
-          {stories.length === 0 ? (
-            <p className="muted">No stories yet. Be the first!</p>
-          ) : (
-            stories.map(s => (
-              <article className="story" key={s.id}>
-                <div className="meta">
-                  <strong className="name">{s.name}</strong>
-                  <time>{new Date(s.created_at).toLocaleString()}</time>
-                </div>
-                <p className="content">{s.story}</p>
-              </article>
-            ))
-          )}
-        </section>
+        <Routes>
+          <Route path="/" element={<Home stories={stories} name={name} story={story} loading={loading} onName={setName} onStory={setStory} onSubmit={submit} />} />
+          <Route path="/admin" element={<Admin stories={stories} adminSecret={adminSecret} setAdminSecret={setAdminSecret} onTrySecret={trySecret} onDelete={handleDelete} />} />
+        </Routes>
       </main>
     </div>
   )
