@@ -59,7 +59,7 @@ export default function Home(props: {
               </div>
               <p className="content">{s.story}</p>
               <div className="meta below">
-                <span className="likes"><3 {s.likes ?? 0}</span>
+                <span className="likes">{'<3'} {s.likes ?? 0}</span>
                 <button disabled={liked.has(s.id)} onClick={async () => { await onLike(s.id); setLiked(prev => new Set(prev).add(s.id)) }}>{liked.has(s.id) ? 'Liked' : 'Like'}</button>
               </div>
             </article>
