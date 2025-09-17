@@ -32,6 +32,17 @@ def init_db():
         conn.executescript(sql)
         conn.commit()
         conn.close()
+    else:
+        # migration: ensure likes column exists
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT likes FROM stories LIMIT 1")
+        except sqlite3.DatabaseError:
+            # add column if missing
+            cur.execute("ALTER TABLE stories ADD COLUMN likes INTEGER DEFAULT 0")
+            conn.commit()
+        conn.close()
 
 app = Flask(__name__)
 CORS(app)
@@ -45,7 +56,7 @@ def close_connection(exception):
 @app.route('/stories', methods=['GET'])
 def get_stories():
     db = get_db()
-    cur = db.execute('SELECT id, name, story, created_at FROM stories ORDER BY created_at DESC')
+    cur = db.execute('SELECT id, name, story, likes, created_at FROM stories ORDER BY likes DESC, created_at DESC')
     rows = [dict(r) for r in cur.fetchall()]
     return jsonify(rows)
 
@@ -60,9 +71,24 @@ def post_story():
     cur = db.execute('INSERT INTO stories (name, story) VALUES (?, ?)', (name, story))
     db.commit()
     rowid = cur.lastrowid
-    cur = db.execute('SELECT id, name, story, created_at FROM stories WHERE id = ?', (rowid,))
+    cur = db.execute('SELECT id, name, story, likes, created_at FROM stories WHERE id = ?', (rowid,))
     row = cur.fetchone()
     return jsonify(dict(row)), 201
+
+
+@app.route('/stories/<int:story_id>/like', methods=['POST'])
+def like_story(story_id: int):
+    # increment likes atomically
+    db = get_db()
+    cur = db.execute('SELECT id FROM stories WHERE id = ?', (story_id,))
+    row = cur.fetchone()
+    if row is None:
+        return jsonify({'error': 'not found'}), 404
+    db.execute('UPDATE stories SET likes = COALESCE(likes,0) + 1 WHERE id = ?', (story_id,))
+    db.commit()
+    cur = db.execute('SELECT id, likes FROM stories WHERE id = ?', (story_id,))
+    r = cur.fetchone()
+    return jsonify(dict(r)), 200
 
 
 # Protected delete: requires X-Admin-Secret header matching ADMIN_SECRET

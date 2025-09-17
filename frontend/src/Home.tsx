@@ -5,6 +5,7 @@ type Story = {
   name: string
   story: string
   created_at: string
+  likes?: number
 }
 
 export default function Home(props: {
@@ -15,8 +16,19 @@ export default function Home(props: {
   onName: (v: string) => void
   onStory: (v: string) => void
   onSubmit: (e: React.FormEvent) => void
+  onLike: (id: number) => Promise<void>
 }){
-  const { stories, name, story, loading, onName, onStory, onSubmit } = props
+  const { stories, name, story, loading, onName, onStory, onSubmit, onLike } = props
+  const [liked, setLiked] = React.useState<Set<number>>(() => {
+    try {
+      const raw = sessionStorage.getItem('liked')
+      return raw ? new Set(JSON.parse(raw)) : new Set()
+    } catch { return new Set() }
+  })
+
+  React.useEffect(() => {
+    try { sessionStorage.setItem('liked', JSON.stringify(Array.from(liked))) } catch {}
+  }, [liked])
   return (
     <>
       <section className="form-section">
@@ -46,6 +58,10 @@ export default function Home(props: {
                 <time>{new Date(s.created_at).toLocaleString()}</time>
               </div>
               <p className="content">{s.story}</p>
+              <div className="meta below">
+                <span className="likes"><3 {s.likes ?? 0}</span>
+                <button disabled={liked.has(s.id)} onClick={async () => { await onLike(s.id); setLiked(prev => new Set(prev).add(s.id)) }}>{liked.has(s.id) ? 'Liked' : 'Like'}</button>
+              </div>
             </article>
           ))
         )}

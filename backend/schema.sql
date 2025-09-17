@@ -2,5 +2,6 @@ CREATE TABLE IF NOT EXISTS stories (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   story TEXT NOT NULL,
+  likes INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT (datetime('now'))
 );

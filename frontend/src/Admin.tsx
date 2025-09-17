@@ -5,6 +5,7 @@ type Story = {
   name: string
   story: string
   created_at: string
+  likes?: number
 }
 
 export default function Admin(props: {
@@ -13,6 +14,7 @@ export default function Admin(props: {
   setAdminSecret: (v: string | null) => void
   onTrySecret: (e: React.FormEvent) => void
   onDelete: (id: number) => void
+  onLike?: (id: number) => Promise<void>
 }) {
   const { stories, adminSecret, setAdminSecret, onTrySecret, onDelete } = props
   return (
@@ -40,11 +42,14 @@ export default function Admin(props: {
                 <time>{new Date(s.created_at).toLocaleString()}</time>
               </div>
               <p className="content">{s.story}</p>
-              {adminSecret && (
-                <div className="actions">
-                  <button onClick={() => onDelete(s.id)}>Delete</button>
-                </div>
-              )}
+              <div className="meta below">
+                <span className="likes">❤️ {s.likes ?? 0}</span>
+                {adminSecret && (
+                  <div className="actions">
+                    <button onClick={() => onDelete(s.id)}>Delete</button>
+                  </div>
+                )}
+              </div>
             </article>
           ))
         )}

@@ -70,6 +70,17 @@ function App() {
     }
   }
 
+  async function handleLike(id: number) {
+    try {
+      const res = await fetch(`${API}/stories/${id}/like`, { method: 'POST' })
+      if (!res.ok) throw new Error('like failed')
+      const json = await res.json()
+      setStories(s => s.map(st => st.id === id ? { ...st, likes: json.likes ?? (st as any).likes ?? 0 } : st))
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   return (
     <div id="app-root">
       <header>
@@ -79,8 +90,8 @@ function App() {
 
       <main>
         <Routes>
-          <Route path="/" element={<Home stories={stories} name={name} story={story} loading={loading} onName={setName} onStory={setStory} onSubmit={submit} />} />
-          <Route path="/admin" element={<Admin stories={stories} adminSecret={adminSecret} setAdminSecret={setAdminSecret} onTrySecret={trySecret} onDelete={handleDelete} />} />
+          <Route path="/" element={<Home stories={stories} name={name} story={story} loading={loading} onName={setName} onStory={setStory} onSubmit={submit} onLike={handleLike} />} />
+          <Route path="/admin" element={<Admin stories={stories} adminSecret={adminSecret} setAdminSecret={setAdminSecret} onTrySecret={trySecret} onDelete={handleDelete} onLike={handleLike} />} />
         </Routes>
       </main>
     </div>
