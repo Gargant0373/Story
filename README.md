@@ -1,6 +1,6 @@
 Simple full-stack stories app (frontend + backend).
 
-Backend: Express + SQLite in /backend
+Backend: Flask + SQLite in /backend
 Frontend: Vite + React in /frontend
 
 Docker
