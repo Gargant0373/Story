@@ -10,7 +10,6 @@ SCHEMA_PATH = os.path.join(BASE_DIR, 'schema.sql')
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        # ensure parent directory exists and is writable
         parent = os.path.dirname(DB_PATH)
         if parent and not os.path.exists(parent):
             os.makedirs(parent, exist_ok=True)
@@ -23,7 +22,6 @@ def get_db():
     return db
 
 def init_db():
-    # ensure parent directory exists
     parent = os.path.dirname(DB_PATH)
     if parent and not os.path.exists(parent):
         os.makedirs(parent, exist_ok=True)
@@ -65,6 +63,18 @@ def post_story():
     cur = db.execute('SELECT id, name, story, created_at FROM stories WHERE id = ?', (rowid,))
     row = cur.fetchone()
     return jsonify(dict(row)), 201
+
+
+@app.route('/stories/<int:story_id>', methods=['DELETE'])
+def delete_story(story_id: int):
+    db = get_db()
+    cur = db.execute('SELECT id FROM stories WHERE id = ?', (story_id,))
+    row = cur.fetchone()
+    if row is None:
+        return jsonify({'error': 'not found'}), 404
+    db.execute('DELETE FROM stories WHERE id = ?', (story_id,))
+    db.commit()
+    return ('', 204)
 
 if __name__ == '__main__':
     init_db()

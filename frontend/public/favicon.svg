@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="100%" height="100%" fill="#f7f7f7" rx="8"/>
+  <!-- simple toilet icon -->
+  <rect x="16" y="28" width="32" height="18" rx="3" fill="#e6e6e6" stroke="#bfbfbf"/>
+  <rect x="24" y="20" width="16" height="10" rx="2" fill="#ffffff" stroke="#bfbfbf"/>
+  <circle cx="40" cy="36" r="3" fill="#b3b3b3"/>
+  <rect x="28" y="36" width="8" height="6" rx="2" fill="#ffffff" stroke="#bfbfbf"/>
+</svg>
