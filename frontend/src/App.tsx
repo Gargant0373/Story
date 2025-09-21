@@ -19,7 +19,6 @@ function App() {
   const [adminSecret, setAdminSecret] = useState<string | null>(() => sessionStorage.getItem('adminSecret'))
   const navigate = useNavigate()
 
-  // When running in docker with nginx, the backend is proxied at /api
   const API = import.meta.env.VITE_API_URL ?? (typeof window !== 'undefined' && window.location.hostname ? '/api' : 'http://localhost:4000')
 
   useEffect(() => {
